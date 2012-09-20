@@ -32,3 +32,4 @@ Build docs:
 * Analogy to a funnel for explaining it? Similar to quantized energy levels of harmonic potential?
 * Applications: tournaments, sequencers?
 * Tie into D3 for visualizing heaps?
+* Leftist, Skew, Binomial heaps?
