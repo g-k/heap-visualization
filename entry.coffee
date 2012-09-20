@@ -4,11 +4,6 @@ _ = require 'underscore'
 Backbone = require 'backbone'
 d3 = require 'd3'
 
-# binaryHeapChildren = (heap, index) ->
-#   [heap[2*index+1], heap[2*index+2]]
-
-# binaryHeapParent = (heap, index) ->
-#   heap[(index-1) >> 1]
 
 log2 = (n) ->
   # http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
@@ -19,6 +14,7 @@ log2 = (n) ->
     e += 1
   e
 
+# Override Heapq getter and setter to trigger events
 Heapq.setter = (heap, index, value) ->
   heap.trigger 'set', index, value
   heap[index] = value
@@ -27,7 +23,10 @@ Heapq.getter = (heap, index) ->
   heap.trigger 'get', index
   heap[index]
 
+
+# Add Backbone events to heap
 heap = _.extend [], Backbone.Events,
+
   push: (item) ->
     @trigger 'push', item
     Array.prototype.push.call @, item
@@ -36,159 +35,95 @@ heap = _.extend [], Backbone.Events,
     @trigger 'pop'
     Array.prototype.pop.call @
 
-# TODO: Trigger d3 drawing on changes
-heap.on 'all', -> console.log arguments
+
+data =
+  initial: [1, 3, 5, 7, 9, 2, 4, 6, 8]
+  heap: heap
 
 
-drawArray = (selection, array, options) ->
+# Make an SVG element with margins
+$g = do ->
+  margin =
+    left: 40
+    right: 440
+    top: 40
+    bottom: 0
 
-  options = _.defaults options,
-    x: (datum, index) -> options.leftPadding + index*options.separation
-    y: options.topPadding
+  outerHeight = 200
+  step = 120
+  width = 960 - margin.right
+  height = outerHeight - margin.top - margin.bottom
+
+  svg = d3.select('body').append('svg')
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin", "1em 0 1em " + -margin.left + "px")
+
+# Scale values to Grayscale
+scaleRGB = d3.scale.ordinal()
+  .domain([d3.max(data.initial), d3.min(data.initial)])
+  .range(colorbrewer.Blues['9'])
+
+
+options = arrayOptions =
     leftPadding: 40.5
     topPadding: 40.5
     separation: 50
     boxHeight: 20
     boxWidth: 20
     text: (datum) -> datum
-    textX: (datum, index) -> options.leftPadding+index*options.separation
+    textX: (datum, index) -> options.leftPadding+index * options.separation
     textY: (datum, index) -> options.topPadding
+    x: (datum, index) -> options.leftPadding + index*options.separation
+    y: 40.5
 
-  dataSelection = selection.selectAll(options.selector).data(array)
 
-  dataSelection.enter()
+# Draw initial data array
+# TODO: Use keys for object constancy properly
+$g.selectAll('.data').data(data.initial, (d) -> d.value)
+  .enter()
     .append('rect')
+      .attr('class', 'data')
       .attr("x", options.x)
       .attr("y", options.y)
       .attr("height", options.boxHeight)
       .attr("width", options.boxWidth)
-      .style("fill", (datum) -> d3.rgb(datum, datum, datum).toString())
+      .style("fill", (datum) -> scaleRGB datum)
       .style("stroke-width", "0px")
 
-  dataSelection.options = options
 
-  dataSelection
-
-data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
-
-dataObjs = _.map data, (n, index) ->
-  value: n
-  index: index
-
-console.log 'dataObjs', dataObjs
-outerHeight = 200
-
-margin =
-  left: 40
-  right: 440
-  top: 40
-  bottom: 0
-
-step = 120
-width = 960 - margin.right
-height = outerHeight - margin.top - margin.bottom
-
-tree = d3.layout.tree().children(
-    (datum, depth) ->
-      children = _.compact [dataObjs[2*datum.index+1], dataObjs[2*datum.index+2]]
-      if _.isEmpty children
-        children = null
-      return children
-  )
-  .size([height, 1])
-  .separation(-> 1)
+console.log d3.entries data.initial
 
 
-root = dataObjs[0]
-nodes = tree.nodes root
-links = tree.links tree.nodes root
-
-console.log 'nodes', nodes.length
-console.log 'links', links.length
-
-svg = d3.select('body').append('svg')
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
-  .style("margin", "1em 0 1em " + -margin.left + "px")
-
-g = svg.append('g')
-  .attr("transform", "translate(#{margin.left},#{margin.top})")
-
-g.selectAll('.link')
-  .data(links)
-  .enter().append('path')
-    .attr('class', 'link')
-    .attr('d', d3.svg.diagonal()
-      .source( (datum) -> {
-        x: datum.source.x
-        y: datum.source.depth * step
-      })
-      .target( (datum) -> {
-        x: datum.target.x
-        y: datum.target.depth * step
-      })
-      .projection( (datum) -> [datum.y, datum.x])
-    )
-
-node = g.selectAll('.node')
-  .data(nodes)
-  .enter().append('g')
-    .attr('class', 'node')
-    .attr('transform', (datum) -> "translate(#{datum.depth*step},#{datum.x})")
-
-node.append('text')
-  .attr("x", 6)
-  .attr("dy", ".32em")
-  .text((datum) -> datum.value)
-  .each((datum) -> datum.width = @getComputedTextLength() + 12)
-
-node.insert("rect", "text")
-  .attr("ry", 6)
-  .attr("rx", 6)
-  .attr("y", -10)
-  .attr("height", 20)
-  .attr("width", (d) -> Math.max(32, d.width))
+data.heap.on 'all', => console.log arguments
 
 
-# dataSelection = drawArray svg, data, selector: 'rect'
-# dataSelection.attr('class', '.original')
+drawHeapArray = ->
+  # TODO: Use arguments to show more transitions
+
+  $g.selectAll('rect.heap').data(data.heap)
+    .transition()
+      .duration(600)
+      .attr("x", options.x)
+      .attr("y", options.y + 50)
+      # TODO: Instead of changing color it should move to the right spot
+      .style("fill", (datum) -> scaleRGB datum)
+      .attr('val', (d) -> d.toString())
 
 
-draw = ->
-  next = data.shift()
-  console.log 'drawing', next, not _.isUndefined next
+pop = ->
+  Heapq.heapPush data.heap, data.initial.pop()
 
-  if _.isUndefined next
-    document.addEventListener 'keypress', draw, false
-  else
-    Heapq.heapPush heap, next
-    console.log heap
-    svg = d3.select('div svg')
+  console.log data.initial, data.heap
 
-    d$ = drawArray(svg, heap,
-      topPadding: 100.5
-      selector: 'rect'
-     )
-    d$.transition()
-      .duration(1000)
-      .attr('y', (datum, index) -> d$.options.topPadding + (log2 index+1)*d$.options.separation)
-      .attr('rx', 10)
-      .attr('ry', 10)
-    # d$.remove().transition(1000).style('opacity', 0.0).remove()
+  $g.selectAll('.data').data(data.initial)
+    .exit()
+      .attr('class', 'heap')
 
+  drawHeapArray()
 
-document.addEventListener 'keypress', draw, false
+  if not _.isEmpty data.initial
+    setTimeout pop, 1000
 
-# heapSel.on 'all', -> console.log arguments
-# drawBinaryHeapTree svg, heap
-
-# sort = []
-# while heap.length
-#   sort.push Heapq.heapPop heap
-
-# console.log sort, data.sort()
-
-
-window.d3 = d3
-window.heap = heap
-window.Heapq = Heapq
+callPop = do ->
+  pop()
