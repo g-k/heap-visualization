@@ -16,7 +16,8 @@
   },
   "scripts": {
     "test": "mocha -c",
-    "docs": "docco heapq.coffee"
+    "docs": "docco heapq.coffee",
+    "build-browser": "rm -f heapq.js && browserify entry.coffee -v -o heapq.js"
   },
   "optionalDependencies": {},
   "engines": {
