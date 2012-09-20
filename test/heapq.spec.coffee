@@ -3,8 +3,9 @@ expect = require 'expect.js'
 
 JSC = require './jscheck'
 
+# Breaks if browser is built because js file is preferred
 heapq = require '../heapq'
-
+eventArray = require '../eventarray'
 
 describe 'heapq', ->
 
@@ -18,8 +19,13 @@ describe 'heapq', ->
     for item in data
       heapq.heapPush heap, item
 
+    console.log heap
+
     sort = []
     while heap.length
       sort.push heapq.heapPop heap
 
     expect(sort).to.eql data.sort()
+
+  it 'should throw error popping from empty heap', ->
+    expect(-> heapq.heapPop([])).to.throwError()
