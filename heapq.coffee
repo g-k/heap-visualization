@@ -35,6 +35,24 @@ heapq =
 
     return returnItem
 
+  # Pop and return the current smallest value, and add the new item.
+  #
+  #       This is more efficient than heappop() followed by heappush(), and can be
+  #       more appropriate when using a fixed-size heap.  Note that the value
+  #       returned may be larger than item!  That constrains reasonable uses of
+  #       this routine unless written as part of a conditional replacement:
+  #
+  #           if item > heap[0]:
+  #               item = heapreplace(heap, item)
+  heapReplace: (heap, item) ->
+
+  # Fast version of a heappush followed by a heappop.
+  heapPushPop: (heap, item) ->
+
+  # Transform list into a heap, in-place, in O(len(x)) time.
+  heapify: (x) ->
+
+
   _siftDown: (heap, startPos, pos) ->
     # 'heap' is a heap at all indices >= startpos, except possibly for pos.  pos
     # is the index of a leaf with a possibly out-of-order value.  Restore the
