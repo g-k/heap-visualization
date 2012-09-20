@@ -8,7 +8,7 @@
 #
 
 heapq =
-  version: require('./package').version
+  version: "0.0.0"
 
   getter: (heap, index) -> heap[index]
   setter: (heap, index, value) -> heap[index] = value
