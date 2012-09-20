@@ -1,20 +1,21 @@
-heapq.coffee
-============
+heap-visualization
+==================
 
-A port of Python [heapq module](http://docs.python.org/library/heapq.html)
-from its [source file](http://hg.python.org/cpython/file/2.7/Lib/heapq.py).
+A d3.js visualization for Binary Heaps.
 
-### Installing
-
-As a node module:
-
-`npm install `
+Uses a partial port of the Python
+[heapq module](http://docs.python.org/library/heapq.html) extended to
+fire events.
 
 ### Development
 
-Run tests:
+Build `heap-vis.js`:
 
-`npm test`
+`npm run-script build-browser`
+
+And run a simple file server with:
+
+`python -m SimpleHTTPServer` or `python3 -m http.server`
 
 Build docs:
 
@@ -22,14 +23,26 @@ Build docs:
 
 ### TODO:
 
-* test in browsers
-* implement rest of module: heapify, heappushpop, nlargest, etc.
+* test evented Heap
+* test visualization in browsers
 
-* Handle deleted array entries in heapify?
-* Handle NaN, or Infinities?
-* Shift right with sign for `>>` unsigned typedArrays or node buffers?
+* When a viewer clicks a value at the top of the page
+ * it should fade value into heap tree as node then animate any heap sifting
 
-* Analogy to a funnel for explaining it? Similar to quantized energy levels of harmonic potential?
-* Applications: tournaments, sequencers?
-* Tie into D3 for visualizing heaps?
-* Leftist, Skew, Binomial heaps?
+* show how heap is stored as an array
+* Extract min/max
+* Delete node from center of heap
+* min and max heaps (change sort order or modified comparator, getter, setter)
+
+* Add text
+ * Analogy to a funnel for explaining it? Similar to quantized energy
+   levels of harmonic potential?
+ * Application examples: tournaments, sequencers?
+ * Add Leftist, Skew, and Binomial heaps?
+
+* Heapq
+ * implement rest of heapq module: heapify, heappushpop, nlargest, etc.
+
+ * Handle deleted array entries in heapify?
+ * Handle NaN, or Infinities?
+ * Shift right with sign for `>>` unsigned typedArrays or node buffers?
