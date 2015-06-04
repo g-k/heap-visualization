@@ -7,6 +7,8 @@ Uses a partial port of the Python
 [heapq module](http://docs.python.org/library/heapq.html) extended to
 fire events.
 
+<img src="screenshot.png?raw=true" alt="" width=600>
+
 ### Development
 
 Build `heap-vis.js`:
